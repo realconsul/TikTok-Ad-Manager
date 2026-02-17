@@ -69,81 +69,11 @@ Run SQL in `tiktok_agent/database/schema.sql` using Supabase SQL editor.
 
 ## Run Locally
 
-Start continuous scheduler (best for local dev or VPS):
+Start continuous scheduler:
 
 ```bash
 python -m tiktok_agent.main
 ```
-
-## Deploy on Vercel (Step-by-Step)
-
-> Vercel does not run long-lived background processes like APScheduler.
-> For Vercel, this project uses **HTTP endpoints + Vercel Cron Jobs**.
-
-### 1) Push code to GitHub
-
-Make sure your repository includes:
-
-- `api/index.py` (API endpoints for daily/weekly runs)
-- `vercel.json` (cron schedules)
-
-### 2) Import project into Vercel
-
-1. Log in to Vercel.
-2. Click **Add New → Project**.
-3. Import your GitHub repo.
-4. Framework preset: **Other** (Python runtime is auto-detected).
-
-### 3) Add environment variables in Vercel
-
-In **Project Settings → Environment Variables**, add:
-
-- `TIKTOK_ACCESS_TOKEN`
-- `TIKTOK_ADVERTISER_ID`
-- `OPENAI_API_KEY`
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
-- `TIMEZONE` (use `Africa/Lagos`)
-- `CRON_SECRET` (random strong string, used to protect cron endpoints)
-
-### 4) Configure Supabase table
-
-Run SQL from `tiktok_agent/database/schema.sql` in your Supabase SQL editor.
-
-### 5) Deploy
-
-Click **Deploy** in Vercel.
-
-After deploy, test:
-
-- `GET /api/health` → should return `{"status":"ok"}`
-
-### 6) Set up Vercel Cron
-
-This repo already includes `vercel.json`:
-
-- `0 6 * * *` → calls `/api/daily` (6:00 UTC = 7:00 Lagos)
-- `0 6 * * 0` → calls `/api/weekly` (Sunday 6:00 UTC = Sunday 7:00 Lagos)
-
-### 7) Verify cron authorization
-
-Endpoints require:
-
-- `Authorization: Bearer <CRON_SECRET>`
-
-Vercel automatically sends this when `CRON_SECRET` is set in environment variables.
-
-### 8) Monitor production runs
-
-Use:
-
-- Vercel **Logs** for endpoint execution
-- Telegram messages for delivery confirmation
-- Supabase table rows for ingestion confirmation
-
-If runs fail, first check missing env vars and API credential scopes.
 
 ## Module Responsibilities
 
@@ -155,13 +85,13 @@ If runs fail, first check missing env vars and API credential scopes.
 - `telegram_bot`: Formats and sends daily/weekly messages.
 - `scheduler`: Runs daily + weekly workflows automatically.
 
-## Deployment Alternatives
+## Deployment Options
 
 ### Option 1: VM / VPS
 
 - Deploy to Ubuntu server.
 - Use systemd service to keep process alive.
-- Run `python -m tiktok_agent.main`.
+- Ensure timezone is set and `.env` present.
 
 ### Option 2: Docker + Cloud VM
 
